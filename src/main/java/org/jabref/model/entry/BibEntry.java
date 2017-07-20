@@ -1,5 +1,7 @@
 package org.jabref.model.entry;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -228,24 +230,9 @@ public class BibEntry implements Cloneable {
     }
 
     public void setCiteKey(String newCiteKey) {
-
-        String keyAutomatica;
-
-        keyAutomatica = geraString();
-
-        char chave[] = newCiteKey.toCharArray();
-
-        //Condição para verificar se a key escolhida é válida:
-        if ((newCiteKey.length() < 2) || (Character.isDigit(chave[0]))) {
-            setField(KEY_FIELD, keyAutomatica); //É definida automaticamente pelo sistema
-        }
-        else {
-            setField(KEY_FIELD, newCiteKey); //É definida pelo usuário
-        }
-
         setField(KEY_FIELD, newCiteKey);
     }
-    
+
     public Optional<String> getCiteKeyOptional() {
         return Optional.ofNullable(fields.get(KEY_FIELD));
     }
@@ -458,7 +445,21 @@ public class BibEntry implements Cloneable {
         // Validação do campo year
         if (fieldName.equals("year") && !isValidYear(value))
         {
-           return Optional.empty();
+            return clearField(fieldName);
+        }
+
+        //Condição para verificar se a key escolhida é válida:
+        if (fieldName.equals("bibtexkey")) {
+            String keyAutomatica;
+
+            keyAutomatica = geraString();
+
+            char chave[] = value.toCharArray();
+
+            if ((value.length() < 2) || (Character.isDigit(chave[0]))) {
+                //É definida automaticamente pelo sistema
+                value = keyAutomatica;
+            }
         }
 
         String oldValue = getField(fieldName).orElse(null);
