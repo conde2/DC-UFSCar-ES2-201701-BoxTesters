@@ -215,6 +215,18 @@ public class BibEntry implements Cloneable {
         return saida;
     }
 
+    //validando o campo ano de acordo com o calendario da linguagem java
+    public boolean isValidYear(String dateString) {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy");
+        try {
+            df.setLenient(false);
+            df.parse(dateString);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+
     public void setCiteKey(String newCiteKey) {
 
         String keyAutomatica;
@@ -233,7 +245,7 @@ public class BibEntry implements Cloneable {
 
         setField(KEY_FIELD, newCiteKey);
     }
-
+    
     public Optional<String> getCiteKeyOptional() {
         return Optional.ofNullable(fields.get(KEY_FIELD));
     }
@@ -441,6 +453,12 @@ public class BibEntry implements Cloneable {
 
         if (value.isEmpty()) {
             return clearField(fieldName);
+        }
+
+        // Validação do campo year
+        if (fieldName.equals("year") && !isValidYear(value))
+        {
+           return Optional.empty();
         }
 
         String oldValue = getField(fieldName).orElse(null);
