@@ -1,5 +1,7 @@
 package org.jabref.model.entry;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,6 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,10 +37,12 @@ import com.google.common.eventbus.EventBus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+//Esta é a classe responsável para inserção de um novo item bibliográfico
 public class BibEntry implements Cloneable {
 
     public static final String TYPE_HEADER = "entrytype";
     public static final String OBSOLETE_TYPE_HEADER = "bibtextype";
+    //Encontrado o atributo
     public static final String KEY_FIELD = "bibtexkey";
     public static final String DEFAULT_TYPE = "misc";
     protected static final String ID_FIELD = "id";
@@ -186,12 +191,44 @@ public class BibEntry implements Cloneable {
         return fields.get(KEY_FIELD);
     }
 
+    //Aqui foi encontrado a parte do código que define uma BibTeX key, que é uma chave de citação
     /**
      * Sets the cite key AKA citation key AKA BibTeX key. Note: This is <emph>not</emph> the internal Id of this entry.
      * The internal Id is always present, whereas the BibTeX key might not be present.
      *
      * @param newCiteKey The cite key to set. Must not be null; use {@link #clearCiteKey()} to remove the cite key.
      */
+
+    //Validação do campo BibTeX para que ele satisfaça as seguintes restrições:
+    //-> Ter no mínimo 2 caracteres
+    //-> Primeiro caractere ser uma letra (maiúscula ou minúscula)
+    //-> Deve ser definido pelo usuário ou automaticamente
+
+    //Função que gera uma string aleatória de 8 caracteres
+    protected String geraString() {
+        String fonte = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+        StringBuilder gerada = new StringBuilder();
+        Random rnd = new Random();
+        while (gerada.length() < 8) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * fonte.length());
+            gerada.append(fonte.charAt(index));
+        }
+        String saida = gerada.toString();
+        return saida;
+    }
+
+    //validando o campo ano de acordo com o calendario da linguagem java
+    public boolean isValidYear(String dateString) {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy");
+        try {
+            df.setLenient(false);
+            df.parse(dateString);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+
     public void setCiteKey(String newCiteKey) {
         setField(KEY_FIELD, newCiteKey);
     }
@@ -403,6 +440,26 @@ public class BibEntry implements Cloneable {
 
         if (value.isEmpty()) {
             return clearField(fieldName);
+        }
+
+        // Validação do campo year
+        if (fieldName.equals("year") && !isValidYear(value))
+        {
+            return clearField(fieldName);
+        }
+
+        //Condição para verificar se a key escolhida é válida:
+        if (fieldName.equals("bibtexkey")) {
+            String keyAutomatica;
+
+            keyAutomatica = geraString();
+
+            char chave[] = value.toCharArray();
+
+            if ((value.length() < 2) || (Character.isDigit(chave[0]))) {
+                //É definida automaticamente pelo sistema
+                value = keyAutomatica;
+            }
         }
 
         String oldValue = getField(fieldName).orElse(null);
