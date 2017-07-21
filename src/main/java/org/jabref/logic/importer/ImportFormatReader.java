@@ -32,6 +32,7 @@ import org.jabref.logic.xmp.XMPPreferences;
 import org.jabref.model.database.BibDatabases;
 import org.jabref.model.entry.BibEntry;
 import org.jabref.model.strings.StringUtil;
+import org.jabref.logic.importer.fileformat.CSVImporter;
 
 public class ImportFormatReader {
 
@@ -69,6 +70,7 @@ public class ImportFormatReader {
         formats.add(new RisImporter());
         formats.add(new SilverPlatterImporter());
 
+        formats.add(new CSVImporter()); //csv
         // Get custom import formats
         for (CustomImporter importer : importFormatPreferences.getCustomImportList()) {
             formats.add(importer);
